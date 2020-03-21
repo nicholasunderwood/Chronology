@@ -15,44 +15,58 @@ server.listen(5000, function() {
 	console.log('Starting server on port 5000');
 });
 
+class Player {
+	constructor(id, name, ready){
+		this.id = id;
+		this.name = name || '';
+		this.ready = ready || false;
+	}
+}
 
+function updateClient(){
+	io.sockets.emit('updateClient', players)
+	if(players.every((val) => val.ready)){
+		startGame();
+	}
+}
 
-setInterval(() => {
-	io.sockets.emit('message', 'hi!');
-}, 1000);
+function startGame() {
+	console.log("start game")
+	
+}
 
-var players = {};
+var players = [];
 
 // Add the WebSocket handlers
 io.on('connection', (socket) => {
+	let player;
 
-	socket.on('new player', function() {
-	players[socket.id] = {
-		x: 300,
-		y: 300
-	};
+	socket.on('new player', ()  => {
+		console.log('new player');
+		player = new Player(socket.id, `Player ${players.length}`);
+		players.push(player);
+		updateClient();
 	});
 
-	socket.on('movement', function(data) {
-
-	var player = players[socket.id] || {};
-	if (data.left) {
-		player.x -= 5;
-	}
-	if (data.up) {
-		player.y -= 5;
-	}
-	if (data.right) {
-		player.x += 5;
-	}
-	if (data.down) {
-		player.y += 5;
-	}
+	socket.on('ready', (ready) => {
+		if(!player) return;
+		console.log(ready)
+		player.ready = ready;
+		updateClient()
 	});
+
+	socket.on('name', (name) => {
+		if(!player) return;
+		console.log(name);
+		player.name = name;
+		updateClient()
+	});
+
+	socket.on('leave', () => {
+		if(!player) return;
+		players.splice(players.indexOf(player));
+		console.log(`${player.name} left`)
+		updateClient();
+	})
 });
 
-setInterval(function() {
-	io.sockets.emit('state', players);
-}, 1000 / 60);
-
-  
