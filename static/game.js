@@ -1,45 +1,81 @@
-// const $ = window.$ = window.jQuery = require('jquery');
+module.exports = Game;
 
-var socket = io();
-socket.emit('new player');
+class Hand {
+	constructor(parent){
+		this.parent = parent;
+		this.balence = 0;
+		this.cards = [];
+    }
+    
+    drawCards(deck){
+        this.cards.push(deck.pop());
+        this.cards.push(deck.pop());
+    }
 
-let isReady = false;
-let wto;
+    get influence() { this.cards.length }
+}
+class Game {
 
-$('#name').bind('propertychange change click keyup input paste', (event) => {
-    clearTimeout(wto);
-    wto = setTimeout(() => {
-		console.log($(event.target).val())
-		socket.emit('name', $(event.target).val())
-    }, 500);
-});
+    constructor(players, gameSettings){
+        this.players = players;
+        this.currentPlayer;
+    }
 
-$(window).bind('beforeunload',() => {
-	console.log('leave')
-	socket.emit('leave');
-});
+    start () {
+        const deck = this.generateDeck();
+        const hands = [];
+        this.players.forEach((player) => {
+            player.hand = new Hand(player);
+            hands.push(player);
+            player.hand.drawCards(deck);
+        });
+        play();
+    }
 
-$('#ready').change(() => {
-	isReady = !isReady;
-	console.log(isReady);
-	socket.emit('ready', isReady);
-});
+    play () {
+        let playerIndex = 0;
+        var hand, turnTimer;
+        
+        while(true) {
+            hand = hands[playerIndex];
+            this.currentPlayer = hand.parent;
 
-socket.on('updateClient', (players) => {
-	console.log('update client', players)
-	let tbody = $('tbody')
-	tbody.empty()
-	players.forEach((player) => {
-		if(player.id != socket.id) {
-			console.log(player.ready)
-			tbody.append($(
-				`<tr>
-					<td><span>${player.name}</span></td>
-					<td><input type='checkbox' disabled ${player.ready ? 'checked' : ''}></td>
-				</tr>`
-			));
-		} else {
-			$('#name').val(player.name)
-		}
-	})
-})
+            playerIndex++;
+            if ( this.hasWon(hand) ) { break; }
+        }
+    }
+
+    hasWon (hand) {
+        hands.forEach((oppHand) => {
+            if(hand != oppHnad && oppHand.influence != 0) {
+                return false;
+            }
+        })
+        return false;
+    }
+
+    static generateDeck(){
+        const deck = [];
+        const values = [...Array(15).keys()];
+        let randNumber;
+        for(let i = 14; i >= 0; i--) {
+            randNumber = Math.floor(Math.random() * i);
+            deck.push(values[randNumber]);
+            values.splice(randNumber,1);
+        }
+        for(let i = 0; i < 15; i++){
+            if(deck[i] < 3) {
+                deck[i] = cards.DUKE; continue;
+            } else if(deck[i] < 6) {
+                deck[i] = cards.ASSASSIN; continue;
+            } else if(deck[i] < 9){
+                deck[i] = cards.AMBASSADOR; continue;
+            } else if(deck[i] < 12){
+                deck[i] = cards.CAPTAIN
+            } else { deck[i] = cards.CONTESSA; }
+        }
+        return deck;
+    }
+    
+}
+
