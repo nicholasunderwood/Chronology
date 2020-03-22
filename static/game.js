@@ -13,12 +13,78 @@ class Hand {
     }
 
     get influence() { this.cards.length }
+
+    loseInfluence(){
+
+    }
 }
+
 class Game {
 
     constructor(players, gameSettings){
         this.players = players;
         this.currentPlayer;
+    }
+
+    static cards = {
+        DUKE: "Duke",
+        ASSASSIN: "Assassin",
+        AMBASSADOR: "Ambassador",
+        CAPTAIN: "Captain",
+        CONTESSA: "Contessa"
+    }
+
+    static actions = {
+        INCOME: {
+            act: (hand) => hand.balence++,
+            actor: false,
+            blockers: false,
+            str: "Income"
+        },
+        FOREIGN_AID: {
+            act: (hand) => hand.balence += 2,
+            actor: false,
+            blockers: [Card.DUKE],
+            str: "Foreign Aid"
+        },
+        COUP: {
+            act: (target) => target.loseInfluence(),
+            actor: false,
+            blockers: false,
+            str: "Coup"
+        },
+        TAX: {
+            act: (hand) => hand.balence += 3,
+            actor: cards.DUKE,
+            blockers: false,
+            str: "Tax"
+        },
+        ASSASSINATE: {
+            act: (target) => target.loseInfluence(),
+            actor: this.cards.ASSASSIN,
+            blockers: [this.cards.CONTESSA],
+            str: "Assassinate"
+        },
+        EXCHANGE: {
+            act: (hand) => hand.exchange(),
+            actor: this.cards.AMBASSADOR,
+            blockers: false,
+            str: "Exchange"
+        },
+        STEAL: {
+            act: (hand, target) => {
+                if(hand.balence >= 2){
+                    hand.balence += 2;
+                    target.balence -= 2;
+                } else {
+                    hand.balence += target.balence
+                    target.balence = 0;
+                }
+            },
+            actor: this.cards.CAPTAIN,
+            blockers: [this.cards.CAPTAIN, this.cards.CONTESSA],
+            str: "Steal"
+        }
     }
 
     start () {
@@ -29,10 +95,10 @@ class Game {
             hands.push(player);
             player.hand.drawCards(deck);
         });
-        play();
+        gameLoop();
     }
 
-    play () {
+    gameLoop () {
         let playerIndex = 0;
         var hand, turnTimer;
         
@@ -53,6 +119,8 @@ class Game {
         })
         return false;
     }
+
+    playAction()
 
     static generateDeck(){
         const deck = [];
