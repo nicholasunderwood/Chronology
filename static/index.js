@@ -5,6 +5,7 @@ socket.emit('new player');
 
 let isReady = false;
 let wto;
+var players;
 
 console.log('start script')
 
@@ -32,7 +33,8 @@ $('#ready').change(() => {
 socket.on('cards', (cards) => console.log(Object.keys(cards)))
 
 //Socket Listeners
-socket.on('updateClient', (players) => {
+socket.on('updateClient', (_players) => {
+	players = _players
 	console.log('update client', players)
 	let tbody = $('tbody')
 	tbody.empty()
@@ -54,14 +56,4 @@ socket.on('updateClient', (players) => {
 socket.on('host', () => {
 	console.log('host');
 	$('#start').prop('disabled', false);
-})
-
-socket.on('start', () => {
-	console.log('start');
-	$('body').load('/static/game.html');
-	socket.removeAllListeners();
-
-
-	// $.getScript('./game.js')
-
-})
+});

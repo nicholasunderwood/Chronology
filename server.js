@@ -1,4 +1,5 @@
 // Dependencies
+
 var express = require('express');
 var http = require('http');
 var path = require('path');
@@ -9,12 +10,17 @@ var io = socketIO(server);
 app.set('port', 5000);
 app.use('/static', express.static(__dirname + '/static'));// Routing
 app.get('/', function(request, response) {
-  response.sendFile(path.join(__dirname, 'index.html'));
+	response.sendFile(path.join(__dirname, 'index.html'));
 });
+
+const imps = require('./static/game.js');
+const Game = imps["Game"];
+const cards = imps["cards"];
+const actions = imps["actions"]
 
 // Starts the server.
 server.listen(5000, function() {
-	console.log('Starting server on port 5000');
+	console.log('Starting server on port 5000: http://localhost:5000');
 });
 
 class Player {
@@ -37,16 +43,13 @@ class Player {
 
 function startGame() {
 	console.log("start game")
-	io.sockets.emit("start");
-
-	const deck = generateDeck();
-	console.log(deck);
+	io.sockets.emit("start", actions);
+	game = new Game(players, null)
 }
 
 
 
 function updateClient(){
-	console.log('update client', players)
 	io.sockets.emit('updateClient', players)
 	if(players.every((val) => val.ready)){
 		startGame();
@@ -54,42 +57,37 @@ function updateClient(){
 }
 
 var players = [
-	new Player(1, "Player 1", true),
-	new Player(2, "Player 2", true),
-	new Player(3, "Player 3", true)
+	// new Player(1, "Player 1", true),
+	// new Player(2, "Player 2", true),
+	// new Player(3, "Player 3", true)
 ];
 
 var sockets = [];
+var game;
 
 // Add the WebSocket handlers
-io.on('connection', (socket) => {
-	startGame()
-	
+io.on('connection', socket => {
 
-	socket.on('new player', ()  => {
-		console.log('new player');
+	socket.on('new player', () => {
 		let player = new Player(
 			socket.id,
 			`Player ${players.length + 1}`
 		);
-
-		io.sockets.emit('cards', cards)
-
+		console.log(`${player.name} joined`);
 		players.push(player);
 		sockets.push(socket);
 
 		if(players.length == 1){
 			socket.emit('host')
 		}
-
 		updateClient();
 
-		socket.on('ready', (ready) => {
+		socket.on('ready', ready => {
 			player.ready = ready;
 			updateClient()
 		});
 	
-		socket.on('name', (name) => {
+		socket.on('name', name => {
 			player.name = name;
 			updateClient()
 		});
@@ -104,7 +102,22 @@ io.on('connection', (socket) => {
 			}
 			console.log(`${player.name} left`)
 			updateClient();
-		})
+		});
+
+		socket.on('action', async (action, id) => {
+			if(game.player.id != player.id) return;
+			console.log('play action', action);
+			action = actions[action.toUpperCase()];
+			const result = game.playAction(action, null);
+			await result;
+			socket.emit('update', player.hand);
+		});
+
+		socket.on('contest', () => {
+			resault = game.contest(hand)
+		});
+
+		startGame();
 	});
 });
 

@@ -1,13 +1,75 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>COUP</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css"> 
-    <script src="/socket.io/socket.io.js"></script>
-  </head>
-  <body>
-    <h1>COUP</h1>
-  </body>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-  <script src="/static/game.js"></script>
-</html>
+<body>
+	<div id='hud'>
+		<div id='name'></div>
+		<div id='hand'>
+			<div class="card" id="card1">
+			</div>
+			<div class="card" id="card2">
+			</div>
+		</div>
+		<div id="balence"></div>
+		<div id="actions">
+			<table>
+				<tr>
+					<th></th>
+					<th>Action</th>
+					<!-- <th>Effect</th> -->
+					<th>Character</th>
+					<th>Blockers</th>
+				</tr>
+				<tr class="action" id="income">
+					<td></td>
+					<td>Income</td>
+					<!-- <td>Take 1 coin</td> -->
+					<td>All</td>
+					<td>None</td>
+				</tr>
+				<tr class="action" id="foreign_aid">
+					<td></td>
+					<td>Foreign Aid</td>
+					<!-- <td>Take 2 coin</td> -->
+					<td>All</td>
+					<td>Duke</td>
+				</tr>
+				<tr class="action" id="coup">
+					<td></td>
+					<td>Coup</td>
+					<!-- <td>Pay 7 Coins. Choose a player to lose influence</td> -->
+					<td>All</td>
+					<td>None</td>
+				</tr>
+				<tr class="action" id="tax">
+					<td></td>
+					<td>Tax</td>
+					<!-- <td>Take 3 coin</td> -->
+					<td>Duke</td>
+					<td>None</td>
+				</tr>
+				<tr class="action" id="assassinate">
+					<td></td>
+					<td>Assassinate</td>
+					<!-- <td>Pay 3 coins. Choose a player to lose influence</td> -->
+					<td>Assassin</td>
+					<td>Contessa</td>
+				</tr>
+				<tr class="action" id="exchange">
+					<td></td>
+					<td>Exhange</td>
+					<!-- <td>Exchange cards with Court Deck</td> -->
+					<td>Ambassador</td>
+					<td>None</td>
+				</tr>
+				<tr class="action" id="steal">
+					<td></td>
+					<td>Steal</td>
+					<!-- <td>Take 2 coins from another player</td> -->
+					<td>All</td>
+					<td>Captain, Ambassador</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div id='table'>
+
+	</div>
+</body>

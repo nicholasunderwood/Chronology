@@ -1,12 +1,38 @@
+html, body{
+	height: 100%;
+}
+
 h1 {
-    width: 100%;
-    text-align: center;
+	width: 100%;
+	text-align: center;
 }
 
 #wrapper {
-    margin: 5vh auto 0 auto;
-    width: fit-content;
-    border: blue solid 3px;
-    border-radius: 10px;
-    padding: 1rem;
+	margin: 5vh auto 0 auto;
+	width: fit-content;
+	border: blue solid 3px;
+	border-radius: 10px;
+	padding: 1rem;
 }
+
+#hud{
+	display: inline-block;
+	border-right: blue solid 3px;
+	width: 30%;
+	height: 100%;
+}
+
+#hand{
+	width: 100%;
+	display: flex;
+	justify-content: space-around;
+}
+
+.card{
+	display: inline-block;
+	padding-top: 40%;
+	width: 30%;
+	background-color: #cccc;
+	border-radius: 10%;
+}
+
