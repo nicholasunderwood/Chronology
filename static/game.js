@@ -14,8 +14,8 @@ class Hand {
 
     get influence() { this.cards.length }
 
-    loseInfluence(){
-
+    loseInfluence() {
+		
     }
 }
 
@@ -89,38 +89,57 @@ class Game {
 
     start () {
         const deck = this.generateDeck();
-        const hands = [];
+        this.hands = [];
         this.players.forEach((player) => {
             player.hand = new Hand(player);
             hands.push(player);
             player.hand.drawCards(deck);
         });
-        gameLoop();
+		this.currentHand = hands[i]
     }
 
-    gameLoop () {
-        let playerIndex = 0;
-        var hand, turnTimer;
-        
-        while(true) {
-            hand = hands[playerIndex];
-            this.currentPlayer = hand.parent;
+       
+	contest(contestee) {
+		clearTimeout(contestTimer);
+		hand.cards.forEach( (card) => {
+			action.blockers.forEach( (blocker) => {
+				if(card == blocker){
+					hand.loseInfluence()
+					return true;
+				}
+			});
+		});
+		contestee.loseInfluence();
+		return false;
+	}
 
-            playerIndex++;
-            if ( this.hasWon(hand) ) { break; }
-        }
-    }
+	playAction(action, target) {
+		currentAction = action
+		this.playAction = (action) => {};
+		this.contest  = contest;
+		contestTimer = setTimeout(() => {
+			this.contest = (hand) => {};
+			this.playAction = playAction;
+			if(target){
+				action.act(hand, target);
+			} else {
+				action.act(hand)
+			}
+		}, 5000);
+	}
+
+
+	
+
 
     hasWon (hand) {
         hands.forEach((oppHand) => {
             if(hand != oppHnad && oppHand.influence != 0) {
-                return false;
+				return false;
             }
         })
         return false;
     }
-
-    playAction()
 
     static generateDeck(){
         const deck = [];
