@@ -13,7 +13,7 @@ app.get('/', function(request, response) {
 	response.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const imps = require('./static/game.js');
+const imps = require('./static/js/game.js');
 const Game = imps["Game"];
 const cards = imps["cards"];
 const actions = imps["actions"]
@@ -28,7 +28,7 @@ class Player {
 		this.id = id;
 		this.name = name || '';
 		this.ready = ready || false;
-		this.cards;
+		this.hand;
 	}
 
 	drawCards(){
@@ -42,28 +42,43 @@ class Player {
 
 
 function startGame() {
-	console.log("start game")
-	io.sockets.emit("start", actions);
-	game = new Game(players, null)
+	console.log("start game");
+	game = new Game(players, null);
+	sockets.forEach((socket, player) => {
+		console.log(player);
+		socket.emit('start', player, players);
+	})
+
 }
 
-
-
 function updateClient(){
-	io.sockets.emit('updateClient', players)
-	if(players.every((val) => val.ready)){
+	io.sockets.emit('updateClient', players);
+	if(players.every(val => val.ready)) {
 		startGame();
 	}
 }
 
-var players = [
-	// new Player(1, "Player 1", true),
-	// new Player(2, "Player 2", true),
-	// new Player(3, "Player 3", true)
-];
+function getActionStatus(actor, action, target){
+	switch(action){
+		case actions.INCOME: return actor + " collected income";
+		case actions.FOREIGN_AID: return actor + " collected foreign aid";
+		case actions.COUP: return actor + " couped " + target;
+		case actions.TAX: return actor + " collected tax";
+		case actions.ASSASSINATE: return actor + " assassinated " + target;
+		case actions.EXCHANGE: return actor + " exchanged their cards";
+		case actions.STEAL: return actor + " stole from " + target;
+	}
+}
 
-var sockets = [];
+function sendServerMessage(message) {
+	io.sockets.emit("new chat", message, true)
+}
+
+var players = [];
+var chat = []
+var sockets = new Map();
 var game;
+var hasStarted = false;
 
 // Add the WebSocket handlers
 io.on('connection', socket => {
@@ -74,8 +89,9 @@ io.on('connection', socket => {
 			`Player ${players.length + 1}`
 		);
 		console.log(`${player.name} joined`);
+		sendServerMessage(`${player.name} joined`)
 		players.push(player);
-		sockets.push(socket);
+		sockets.set(player, socket);
 
 		if(players.length == 1){
 			socket.emit('host')
@@ -91,33 +107,37 @@ io.on('connection', socket => {
 			player.name = name;
 			updateClient()
 		});
-	
+		
+		socket.on('chat recived', message => {
+			message = player.name + ": " + message
+			chat.push(message);
+			io.sockets.emit('new chat', message, false);
+		});
+		
 		socket.on('leave', () => {
 			let index = players.indexOf(player)
 			if(index < 0) return;
 			players.splice(index);
-			sockets.splice(index)
-			if(index == 0) {
-				// sockets[0].emit('host')
-			}
-			console.log(`${player.name} left`)
+			sockets.delete(player);
+			console.log(`${player.name} left`);
 			updateClient();
 		});
 
-		socket.on('action', async (action, id) => {
+		socket.on('action', async (action, target) => {
 			if(game.player.id != player.id) return;
 			console.log('play action', action);
 			action = actions[action.toUpperCase()];
 			const result = game.playAction(action, null);
+			io.sockets.emit('action played', getActionStatus(player.name, action, target ? target.name : null));
 			await result;
 			socket.emit('update', player.hand);
 		});
 
 		socket.on('contest', () => {
-			resault = game.contest(hand)
+			console.log('contest');
+			resault = game.contest(player.hand)
 		});
 
-		startGame();
 	});
 });
 

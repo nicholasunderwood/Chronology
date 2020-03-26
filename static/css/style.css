@@ -16,10 +16,19 @@ h1 {
 }
 
 #hud{
-	display: inline-block;
+	padding: 10px;
+	float: left;
+	width: 100%;
+	/* display: inline-block; */
 	border-right: blue solid 3px;
+	border-radius: 10%;
 	width: 30%;
 	height: 100%;
+}
+
+#table{
+	/* display: inline-block; */
+	float: right;
 }
 
 #hand{
@@ -34,5 +43,25 @@ h1 {
 	width: 30%;
 	background-color: #cccc;
 	border-radius: 10%;
+}
+
+#header{
+	width: 100%;
+	text-align: center;
+}
+
+#chat{
+	height: 300px;
+	border: black 1px solid;
+}
+
+#chat input{
+	position: absolute;
+	bottom: 0;
+}
+
+.serverMessage{
+	color: blue;
+	text-emphasis: bold;
 }
 

@@ -73,7 +73,9 @@ class Hand {
 
 	get influence() { this.cards.length }
 
-	loseInfluence() {
+	loseInfluence() {}
+
+	exchange() {
 		
 	}
 }
@@ -90,7 +92,7 @@ class Game {
 		});
 		
 		this.playerIndex = 0;
-		this.player = this.players[this.playerIndex]		
+		this.player = this.players[this.playerIndex]
 		this.contestTimer;
 	}
 
@@ -104,33 +106,38 @@ class Game {
 	   
 	contest(contestee) {
 		if(!this.currentAction) return true;
-		hand.cards.forEach( (card) => {
+		this.contestee.cards.forEach((card) => {
 			action.blockers.forEach( (blocker) => {
 				if(card == blocker){
 					hand.loseInfluence()
+					this.contestPromise.resolve()
 					return true;
 				}
 			});
 		});
 		contestee.loseInfluence();
+		this.contestPromise.reject()
 		return false;
 	}
 
 	async playAction(action, target) {
 		this.currentAction = action
-		let timer = new Promise(resolve => {
+		this.contestPromise = new Promise(resolve => {
 			setTimeout(() => {
 				if(target){
 					action.act(this.hand, target);
 				} else {
 					action.act(this.hand)
 				}
-				this.currentAction = null;
-				this.updatePlayer()
-				resolve(true)
-			}, 1000);
+				resolve();
+			}, 5000);
+		}, reject => {
+			reject();
 		});
-		return await timer;
+		await this.contestPromise;
+		this.updatePlayer();
+		this.currentAction = null;
+		this.contestPromise = null;
 	}
 
 	hasWon (hand) {

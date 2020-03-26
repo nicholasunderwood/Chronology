@@ -5,12 +5,12 @@ socket.emit('new player');
 
 let isReady = false;
 let wto;
-var players;
+var players, clientPlayer;
 
 console.log('start script')
 
 
-$('#name').bind('propertychange change click keyup input paste', (event) => {
+$('#name').bind('propertychange change keyup input paste', (event) => {
     clearTimeout(wto);
     wto = setTimeout(() => {
 		let newName = $(event.target).val();
@@ -20,6 +20,9 @@ $('#name').bind('propertychange change click keyup input paste', (event) => {
     }, 500);
 });
 
+
+
+
 $(window).bind('beforeunload',() => {
 	socket.emit('leave');
 });
@@ -28,9 +31,6 @@ $('#ready').change(() => {
 	isReady = !isReady;
 	socket.emit('ready', isReady);
 });
-
-
-socket.on('cards', (cards) => console.log(Object.keys(cards)))
 
 //Socket Listeners
 socket.on('updateClient', (_players) => {
@@ -49,11 +49,8 @@ socket.on('updateClient', (_players) => {
 			));
 		} else {
 			$('#name').val(player.name);
+			clientPlayer = player;
 		}
 	})
 });
 
-socket.on('host', () => {
-	console.log('host');
-	$('#start').prop('disabled', false);
-});
