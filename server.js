@@ -28,16 +28,32 @@ class Player {
 		this.id = id;
 		this.name = name || '';
 		this.ready = ready || false;
-		this.hand;
 	}
 
-	drawCards(){
+	start(){
+		this.cards = [];
+		this.balence = 0;
+	}
+
+	drawCards(deck){
 		if(!this.cards){
-			this.cards = [];
-			this.cards.push(deck.pop())
-			this.cards.push(deck.pop())
+			this.cards = deck.slice(0,2);
+			deck.splice(0,2);
 		}
 	}
+
+	get influence() { this.cards.length }
+
+	loseInfluence() {
+		sockets[this].emit('lost influence');
+	}
+
+	exchange(deck) {
+		deck.concat(cards);
+		this.drawCards();
+	}
+
+
 }
 
 
@@ -75,7 +91,7 @@ function sendServerMessage(message) {
 }
 
 var players = [];
-var chat = []
+var chat = [];
 var sockets = new Map();
 var game;
 var hasStarted = false;
@@ -125,17 +141,17 @@ io.on('connection', socket => {
 
 		socket.on('action', async (action, target) => {
 			if(game.player.id != player.id) return;
-			console.log('play action', action);
+			console.log('play action', action.str);
 			action = actions[action.toUpperCase()];
 			const result = game.playAction(action, null);
 			io.sockets.emit('action played', getActionStatus(player.name, action, target ? target.name : null));
 			await result;
-			socket.emit('update', player.hand);
+			socket.emit('update', player);
 		});
 
 		socket.on('contest', () => {
 			console.log('contest');
-			resault = game.contest(player.hand)
+			resault = game.contest(player)
 		});
 
 	});

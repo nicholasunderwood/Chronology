@@ -20,9 +20,6 @@ $('#name').bind('propertychange change keyup input paste', (event) => {
     }, 500);
 });
 
-
-
-
 $(window).bind('beforeunload',() => {
 	socket.emit('leave');
 });
@@ -42,7 +39,6 @@ socket.on('updateClient', (_players) => {
 		if(player.id != socket.id) {
 			tbody.append($(
 				`<tr>
-					<td></td>
 					<td><span>${player.name}</span></td>
 					<td><input type='checkbox' disabled ${player.ready ? 'checked' : ''}></td>
 				</tr>`

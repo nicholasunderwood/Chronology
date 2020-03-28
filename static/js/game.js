@@ -45,38 +45,13 @@ const actions = {
 		str: "Exchange"
 	},
 	STEAL: {
-		act: (hand, target) => {
-			if(hand.balence >= 2){
-				hand.balence += 2;
-				target.balence -= 2;
-			} else {
-				hand.balence += target.balence
-				target.balence = 0;
-			}
+		act: (player, target) => {
+			player.balence += Math.min(target.balence, 2);
+			target.balence -= Math.min(target.balence, 2);
 		},
 		actor: cards.CAPTAIN,
 		blockers: [cards.CAPTAIN, cards.CONTESSA],
 		str: "Steal"
-	}
-}
-
-class Hand {
-	constructor(){
-		this.balence = 0;
-		this.cards = [];
-	}
-	
-	drawCards(deck){
-		this.cards.push(deck.pop());
-		this.cards.push(deck.pop());
-	}
-
-	get influence() { this.cards.length }
-
-	loseInfluence() {}
-
-	exchange() {
-		
 	}
 }
 
@@ -87,8 +62,7 @@ class Game {
 
 		this.deck = this.generateDeck();
 		this.players.forEach((player) => {
-			player.hand = new Hand();
-			player.hand.drawCards(this.deck);
+			player.drawCards(this.deck);
 		});
 		
 		this.playerIndex = 0;
@@ -99,24 +73,21 @@ class Game {
 	updatePlayer(){
 		this.playerIndex = (this.playerIndex + 1 >= this.players.length) ? 0 : this.playerIndex + 1;
 		this.player = this.players[this.playerIndex];
-		console.log(this.playerIndex, this.player)
 	}
-
-	get hand() { return this.player.hand }
 	   
 	contest(contestee) {
 		if(!this.currentAction) return true;
 		this.contestee.cards.forEach((card) => {
-			action.blockers.forEach( (blocker) => {
+			action.blockers.forEach((blocker) => {
 				if(card == blocker){
-					hand.loseInfluence()
-					this.contestPromise.resolve()
+					this.player.loseInfluence()
+					this.contestPromise.rejcet()
 					return true;
 				}
 			});
 		});
 		contestee.loseInfluence();
-		this.contestPromise.reject()
+		this.contestPromise.resolve()
 		return false;
 	}
 
@@ -125,9 +96,9 @@ class Game {
 		this.contestPromise = new Promise(resolve => {
 			setTimeout(() => {
 				if(target){
-					action.act(this.hand, target);
+					action.act(this.player, target);
 				} else {
-					action.act(this.hand)
+					action.act(this.player)
 				}
 				resolve();
 			}, 5000);
@@ -140,13 +111,15 @@ class Game {
 		this.contestPromise = null;
 	}
 
-	hasWon (hand) {
-		hands.forEach((oppHand) => {
-			if(hand != oppHnad && oppHand.influence != 0) {
-				return false;
+	hasWon() {
+		var winner = false;
+		player.forEach((player) => {
+			if(player.influence != 0) {
+				if( winner ) { return false; }
+				else { winner = player}
 			}
 		})
-		return false;
+		return winner;
 	}
 
 	generateDeck () {

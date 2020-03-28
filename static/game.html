@@ -1,76 +1,78 @@
 <body>
 	<div id='hud'>
 		<div id='name'></div>
-		<div id='hand'>
-			<div class="card" id="card1">
+		<div class='hand'>
+			<div class="char" id="card1">
 			</div>
-			<div class="card" id="card2">
+			<div class="char" id="card2">
 			</div>
 		</div>
 		<div id="balence"></div>
 		<div id="actions">
-			<table>
+			<table class="table table-striped table-hover table-sm">
+				<thead class="thead-light">
 				<tr>
 					<th></th>
 					<th>Action</th>
-					<!-- <th>Effect</th> -->
-					<th>Character</th>
-					<th>Blockers</th>
+					<th>Played by</th>
+					<th>Blocked by</th>
 				</tr>
-				<tr class="action" id="income">
+				</thead>
+				<tbody>
+				<tr class="action solo" id="income">
 					<td></td>
 					<td>Income</td>
 					<!-- <td>Take 1 coin</td> -->
-					<td>All</td>
-					<td>None</td>
+					<td></td>
+					<td></td>
 				</tr>
-				<tr class="action" id="foreign_aid">
+				<tr class="action solo" id="foreign_aid">
 					<td></td>
 					<td>Foreign Aid</td>
 					<!-- <td>Take 2 coin</td> -->
-					<td>All</td>
+					<td></td>
 					<td>Duke</td>
 				</tr>
-				<tr class="action" id="coup">
+				<tr class="action targeted" id="coup">
 					<td></td>
 					<td>Coup</td>
 					<!-- <td>Pay 7 Coins. Choose a player to lose influence</td> -->
-					<td>All</td>
-					<td>None</td>
+					<td></td>
+					<td></td>
 				</tr>
-				<tr class="action" id="tax">
+				<tr class="action solo" id="tax">
 					<td></td>
 					<td>Tax</td>
 					<!-- <td>Take 3 coin</td> -->
 					<td>Duke</td>
-					<td>None</td>
+					<td></td>
 				</tr>
-				<tr class="action" id="assassinate">
+				<tr class="action targeted" id="assassinate">
 					<td></td>
 					<td>Assassinate</td>
 					<!-- <td>Pay 3 coins. Choose a player to lose influence</td> -->
 					<td>Assassin</td>
 					<td>Contessa</td>
 				</tr>
-				<tr class="action" id="exchange">
+				<tr class="action solo" id="exchange">
 					<td></td>
 					<td>Exhange</td>
 					<!-- <td>Exchange cards with Court Deck</td> -->
 					<td>Ambassador</td>
-					<td>None</td>
+					<td></td>
 				</tr>
-				<tr class="action" id="steal">
+				<tr class="action targeted" id="steal">
 					<td></td>
 					<td>Steal</td>
 					<!-- <td>Take 2 coins from another player</td> -->
-					<td>All</td>
-					<td>Captain, Ambassador</td>
+					<td>Captain</td>
+					<td>Captain | Ambassador</td>
 				</tr>
+				</tbody>
 			</table>
 		</div>
 		<div id="chat">
 			<div>
-
 			</div>
 			<form id='chatForm'>
 				<input id='chatInput'>
@@ -79,12 +81,47 @@
 	</div>
 	<div id='table'>
 		<div id='header'>
-			<div id='status'></div>
+			<div id='status'>Player 1's turn</div>
 			<div id='timer'><div id="progress"></div></div>
 			<div id='buttons'>
-				<button id='block'>Block Action</button>
-				<button id='contest'>Contest Card</button>
+				<button id='block' class="btn btn-primary" disabled>Block Action</button>
+				<button id='contest' class="btn btn-primary" disabled>Contest Card</button>
 			</div>
 		</div>
+		<div id="players">
+		</div>
 	</div>
+
+
+	<div id="targets" class="modal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+		  <div class="modal-content">
+			<div class="modal-header">
+			  <h5 class="modal-title">Choose a target</h5>
+			  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			  </button>
+			</div>
+			<table class="table table-hover">
+				<tbody>
+
+				</tbody>
+			</table>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-primary">Save changes</button>
+			  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
 </body>
+<!-- <!DOCTYPE html>
+<html>
+<head>
+
+  <title>COUP</title>
+  <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="./css/client.css">
+
+</head> -->
+<!-- </html> -->
