@@ -18,37 +18,84 @@ server.listen(5000, function () {
 	console.log('Starting server on port 5000: http://localhost:5000');
 });
 
-function addRing(ring){
-	for(let i = rings.length-1; i >= 0; i++){
-		if(ring.time > rings[i].time){
-			rings.splice(i+1, 0, ring);
-			return;
-		}
+class Player {
+	constructor(id, name){
+		this.id = id;
+		this.name = name;
+		this.score = 0;
 	}
-	rings.unshift(ring);
 }
 
-var hosts = [];
-const rings = []
+function addRing(newRing) {
+	if(ring == null){
+		io.sockets.emit('buzzState', false);
+		ring = newRing;
+		setTimeout(() => {
+			currentPlayer = ring.player;
+			host.emit('buzz', ring.player.name);
+			ring = null;
+		}, 300);
+	} else {
+		if(newRing.time < ring.time){
+			ring = newRing;
+		}
+	}
+}
+
+const finished = new Map();
+const players = [];
+const catagories = [];
+var host, board;
+var ring = null;
+var question = null;
+var currentPlayer = null;
+
+fs.readFile("questions.json", 'utf8', (err, data) => {
+	if (err) throw err;
+	board = JSON.parse(data)
+	for(key in board){
+		catagories.push(key);
+	}
+});
 
 // Add the WebSocket handlers
 io.on('connection', socket => {
 	var isHost = false;
+	var player;
 
-	socket.on('host', () => {
-		isHost = true;
-		hosts.push(socket);
-		socket.on('clear', () => {
-			rings.splice(0,rings.length);
-		});
-		socket.emit('ring', rings);
+	socket.on('ready', name => {
+		if(name){
+			player = new Player(socket.id, name);
+			players.push(player);
+
+			socket.on('buzz', date => {
+				addRing({'player': player, 'time': date});
+			});
+			
+		} else {
+			isHost = true;
+			host = socket;
+
+			socket.on('square choosen', (catagory, index) => {
+				question = board[catagory][index]
+				io.sockets.emit('buzzState', true);
+				socket.emit('question', question);
+			});
+
+			socket.on('correct', () => {
+				currentPlayer.score += question.value;
+			});
+
+			socket.on('incorrect', () => {
+				io.sockets.emit('buzzState', true);
+				currentPlayer.score -= question.value;
+			});
+
+			socket.on('back', () => {
+				socket.emit('board', board);
+			});
+
+			socket.emit('board', board);
+		}
 	});
-
-	socket.on('player', () => {
-		socket.on('ring', newRing => {
-			addRing(newRing)
-			hosts.forEach(host => host.emit('ring', rings));
-		});
-	});
-
 });
