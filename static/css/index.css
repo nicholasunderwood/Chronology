@@ -3,7 +3,7 @@ html, body{
 } h1 {
 	width: 100%;
 	text-align: center;
-} #wrapper {
+} #wrapper, #addCards {
 	margin: 5vh auto 0 auto;
 	width: fit-content;
 	border: blue solid 3px;

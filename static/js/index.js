@@ -11,16 +11,16 @@ console.log('start script')
 
 
 $('#name').bind('propertychange change keyup input paste', (event) => {
-    clearTimeout(wto);
-    wto = setTimeout(() => {
+	clearTimeout(wto);
+	wto = setTimeout(() => {
 		let newName = $(event.target).val();
-		if(newName){
+		if (newName) {
 			socket.emit('name', newName)
 		}
-    }, 500);
+	}, 500);
 });
 
-$(window).bind('beforeunload',() => {
+$(window).bind('beforeunload', () => {
 	socket.emit('leave');
 });
 
@@ -29,6 +29,20 @@ $('#ready').change(() => {
 	socket.emit('ready', isReady);
 });
 
+$('#addCards>form').submit(e => {
+	e.preventDefault();
+	console.log('submit');
+	var card = {
+		"year": +$('#year').val(),
+		"group": +$('#cardGroup').val(),
+		"question": $('#question').val()
+	}
+	socket.emit("new card", card);
+	$('#question').val("");
+
+
+})
+
 //Socket Listeners
 socket.on('updateClient', (_players) => {
 	players = _players
@@ -36,7 +50,7 @@ socket.on('updateClient', (_players) => {
 	let tbody = $('tbody')
 	tbody.empty()
 	players.forEach((player) => {
-		if(player.id != socket.id) {
+		if (player.id != socket.id) {
 			tbody.append($(
 				`<tr>
 					<td><span>${player.name}</span></td>

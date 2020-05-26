@@ -20,7 +20,25 @@
 					</tbody>
 				</table>
 			</div>
-			
+		</div>
+		<div id="addCards">
+			<form class="form">
+				<div class="col-auto my-1">
+					<label class="mr-sm-2" for="year">Year</label>
+					<input id="year" type="number" class="form-control" placeholder="Year">
+				</div>
+				<div class="col-auto my-1">
+					<label class="mr-sm-2" for="cardGroup">Card Group</label>
+					<select class="custom-select mr-sm-2" id="cardGroup">
+						<option value="1" selected>History</option>
+						<option value="2">Arts and Entertainment</option>
+						<option value="3">Inventions and Discoveries</option>
+						<option value="4">Sports</option>
+					</select>
+				</div><br>
+				<textarea id="question" class="form-control" rows="6"></textarea><br>
+				<input type="submit" value="Submit" class="form-control">
+			</form>
 		</div>
 
 		
