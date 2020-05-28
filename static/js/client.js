@@ -39,11 +39,12 @@ $( document ).ready( () => {
     show('login');
     $('.clientType').click(event => {
         let btn = $(event.target);
-        if(btn.hasClass('btn-outline-dark')){
+        if(btn.attr('selected')){
             $('.clientType')
                 .toggleClass('btn-outline-dark')
                 .toggleClass('btn-dark')
-                .attr('selected', (_, attr) => attr == 'true' ? 'false' : 'true' );
+                .each((_,el) => $(el).attr('selected',!$(el).attr('selected')));
+            setTimeout(() => $('#client-type-div').toggleClass('mt-2'), 200);
             $('#name-group').slideToggle();
         }
     });

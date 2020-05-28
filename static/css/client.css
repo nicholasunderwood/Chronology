@@ -2,12 +2,13 @@ html, body {
     height: 100%;
     width: 100%;
     /* overflow: hidden; */
-} 
+}
 body>div {
     width: 100%;
     height: 100%;
     display: none;
 }
+
 #login>div {
     position: absolute;
     top: 50%;
@@ -16,6 +17,7 @@ body>div {
     padding: 10px;
     width: 30%;
 }
+
 #bell {
     position: absolute;
     top: 20%;
