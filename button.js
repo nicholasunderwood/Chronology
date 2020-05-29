@@ -45,7 +45,8 @@ function addRing(newRing) {
 const finished = new Map();
 const players = [];
 const catagories = [];
-var host, board;
+var board;
+var host = null
 var ring = null;
 var question = null;
 var currentPlayer = null;
@@ -61,22 +62,38 @@ fs.readFile("questions.json", 'utf8', (err, data) => {
 // Add the WebSocket handlers
 io.on('connection', socket => {
 	var isHost = false;
-	var player;
+	var player = null;
 
 	socket.on('ready', name => {
-		if(name){
+		console.log(name, name == 'host');
+		if(player){
+			console.log('player')
+			isHost = false;
+			players.splice(players.indexOf(player));
+			player = null;
+		}
+		if(name != 'host'){
 			player = new Player(socket.id, name);
 			players.push(player);
 
 			socket.on('buzz', date => {
 				addRing({'player': player, 'time': date});
+				socket.emit('buzzState', false);
+				console.log('buzz');
 			});
-			
+			console.log("new player", name);
+
 		} else {
+			console.log('host')
 			isHost = true;
 			host = socket;
 
-			socket.on('square choosen', (catagory, index) => {
+			socket.on('start', () => {
+				io.sockets.emit('start', Object.keys(board));
+				console.log('start');
+			});
+
+			socket.on('square chosen', (catagory, index) => {
 				question = board[catagory][index]
 				io.sockets.emit('buzzState', true);
 				socket.emit('question', question);
@@ -92,10 +109,16 @@ io.on('connection', socket => {
 			});
 
 			socket.on('back', () => {
-				socket.emit('board', board);
+				socket.emit('board', Object.keys(board), players);
 			});
-
-			socket.emit('board', board);
 		}
+
+		socket.on('leave', () => {
+			players.splice(players.indexOf(player));
+			console.log(`${player.name} left`);
+			io.socket.emit('players', players, host != null);
+		});
+
+		io.sockets.emit('players', players, host != null);
 	});
 });

@@ -1,7 +1,7 @@
 const socket = io();
 var name = '';
 var isHost = false;
-var board, client, players;
+var client, players;
 
 function show(id){
     $('body>div').each((_, el) => {
@@ -9,32 +9,33 @@ function show(id){
     });
 }
 
-function startGame(_board, _client, _players) {
+function startGame(categories, _players) {
     if(!isHost){
+        console.log('load buzzer')
         loadBuzzer();
         return;
     }
-    board = _board; client = _client; players = _players;
-    socket.on('question', loadQuestion);
-    socket.on('board', loadBoard);
-    
+    players = _players;
+    socket.on('question', showQuestion);
+    socket.on('board', showBoard);
 
-    loadBoard();
+    loadBoard(categories);
     loadQuestion();
     showBoard(board);
 }
 
-function loadBoard() {
-    for(let i = 0; i < 5; i++ ){
-        tbody.append('<tr></tr>');
-    }
+function loadBoard(categories) {
+    let tbody = $('#board tbody');
+    categories.forEach( category => {
+        $('#board thead').append($(`<th>${category}</th>`));
+    });
 
-    for(let key in board) {
-        console.log('key', board[key]);
-        thead.append($(`<th>${key}</th>`));
-        board[key].forEach((question, i) => {
-            $(tbody.children().eq(i)).append(`<td cat=${key} index=${i} enabled>${i * 100}</td>`)
-        });
+    for(let row = 0; row < 5; row++ ){
+        let tr = $('<tr></tr>');
+        for(let i = 0; i < 5; i++){
+            tr.append(`<td cat=${categories[row]} index=${i} enabled>${(row+1) * 100}</td>`);
+        }
+        $('#board tbody').append(tr);
     }
 
     $('td:enabled').click(event => {
@@ -43,49 +44,41 @@ function loadBoard() {
     });
 }
 
-function loadQuestion(question) {
-
-    $('#correct').click(() => {
-        socket.emit('correct');
-        $('#answer>span').text(question.answer);
-        $('#back').prop('disabled', false);
+function showBoard() {
+    
+    $('#board td').click(event => {
+        socket.emit('square chosen', $(event.target).attr('cat'), +$(event.target).attr('index'));
+        $('td').unbind();
     });
+    
+    show('board')
+}
+
+function loadQuestion() {
 
     $('#incorrect').click(() => { socket.emit('incorrect'); });
-    $('#back').click(() => { socket.emit('back'); })
 
     socket.on('buzz', name => {
         alert(name + " has buzzed in");
-        $('.validation').prop('disabled', false);
+        $('.validation').each( (_, el) => $(el).prop('disabled', false));
     });
-
-    
-}
-
-function showBoard(board) {
-    
-    
-    $('td:enabled').click(event => {
-        socket.emit('square chosen', event.target.cat, event.target.index);
-        $('td').unbind();
-    });
-
 }
 
 function showQuestion(question){
+
+    function showAnswer() {
+        $('#a').text(question.answer);
+        $('.validation').each((_,el) => $(el).prop('disabled', true));
+        $('#back').val('Back to Board');
+        $('#back').click(() => socket.emit('back') );
+    }
+
+    $('.validation').each( (_, el) => $(el).prop('disabled', false));
+    $('#q').text(question.question);
+    $('#correct').click(() => {})
+
+    console.log('show question', question)
     show('question');
-
-    let hidden = $('#question>.hidden');
-    let visable = $('#question>.visable');
-    hidden.text(question.question);
-    let wordList = question.question.split(' ');
-
-    let interval = setInterval(() => {
-        let word = wordList.shift();
-        visable.append(word + wordList == 0 ? '' : ' ')
-        hidden.text(hidden.text().slice(word.length));
-        if(wordList.length == 0){ clearInterval(interval); }
-    }, 100);
 }
 
 
@@ -102,13 +95,16 @@ function loadBuzzer() {
         console.log('buzz');
         socket.emit('buzz', new Date());
     });
+    show('buzzer')
 }
 
 $( document ).ready( () => {
+    $('#start-div').hide();
+    $('#list-div').hide();
     show('login');
     $('.clientType').click(event => {
         let btn = $(event.target);
-        if(btn.hasClass('btn-outline-dark')){
+        if(btn.hasClass('btn-outline-dark')) {
             $('.clientType')
                 .toggleClass('btn-outline-dark')
                 .toggleClass('btn-dark')
@@ -120,20 +116,26 @@ $( document ).ready( () => {
     $('#login form').submit((e) => {
         e.preventDefault();
         isHost = $('#isHost').hasClass("btn-dark");
-        socket.emit('ready', isHost ? 'host' : 'player');
-        console.log('ready', isHost)
+        name = isHost ? 'host' : $('#name').val();
+        socket.emit('ready', name);
+        console.log('ready', isHost);
         socket.on('start', startGame);
-    })
+        
+        if(isHost) {
+            $('#start').click(() => {
+                socket.emit('start');
+            }).prop('disabled', false);
+            $('#start-div').slideDown();
+        }
+    });
 
-});
+    socket.on('players', (players, hasHost) => {
+        $('#isHost').prop('disabled', !hasHost && isHost);
+        $('#players-list').empty();
 
-socket.on('player', () => {
-    console.log('player');
-    show('login');
-    $('#login form').submit((event) => {
-        event.preventDefault();
-        if(!name) return; 
-        show('ringer');
-
+        console.log('players', players);
+        players.forEach((player) => {
+            $('#players-list').append($(`<li class='list-group-item'>${player}</li>`));
+        });
     });
 });
