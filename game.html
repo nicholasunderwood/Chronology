@@ -38,8 +38,6 @@
             </form>
         </div>
     </div>
-    <div id='status'>
-    </div>
     <div id='board'>
         <div>
             <table>
@@ -49,26 +47,32 @@
         </div>
     </div>
     <div id='question'>
-        <div id='q'>
-        </div>
-        <div id='a'>
+        <div id='info'>
+            <h1 id='q'></h1>
+            <h1 id='a'></h1>
         </div>
         <div id='btns'>
-            <div id='validation'>
+            <div id='validation' class="rounded-top">
                 <input type="button" id='correct' class="form-control btn btn-danger validation" value="Correct" disabled>
                 <input type="button" id='incorrect' class="form-control btn btn-success validation" value="Incorrect" disabled>
             </div>
-            <div>
-                <div class="col"><input type="button" id='back' class="form-control btn btn-dark" value="Return to board" disabled></div>
+            <div class="rounded-bottom">
+                <input type="button" id='back' class="form-control btn btn-dark" value="Return to board">
             </div>
         </div>
     </div>
     <div id='buzzer'>
+        <div id='status'>
+            <h2 id='place'>1st</h2>
+            <h2 id='score'>$1000</h2>
+        </div>
         <input type="button" class="btn btn-danger" id='bell'>
     </div>
 </body>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <script src="/static/js/bootstrap.bundle.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/static/js/client.js"></script>
+
 </html>

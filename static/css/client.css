@@ -16,10 +16,6 @@ body>div {
     padding: 10px;
     width: 30%;
 }
-#status {
-    width: 100%;
-    height: 10%;
-}
 #board>div{
     margin: 10px auto;
     width: 80%;
@@ -39,13 +35,35 @@ body>div {
     width: 20%
 }
 
+#question #info {
+    width: 60%;
+    margin: 10% auto 0 auto;
+    text-align: center;
+}
+
+#question #q {
+    padding-bottom: 50px;
+}
+
+#question #a {
+    border-top: black 5px solid;
+    padding-top: 50px;
+}
+
+
 #question #btns{
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 0;
-    width: 80%;
+    bottom: 5%;
+    height: 8%;
+    width: 60%;
     margin: 5px auto;
+}
+
+#question input{
+    height: 100%;
+    border-radius: 0;
 }
 
 #question #validation{
@@ -61,7 +79,41 @@ body>div {
     width: 50%;
 }
 
-#bell {
+#question #correct {
+    border-radius: 15px 0 0 0 ;
+}
+
+#question #incorrect {
+    border-radius: 0 15px 0 0;
+}
+
+#question #back {
+    border-radius: 0 0 15px 15px;
+}
+
+#buzzer #status{
+    position: absolute;
+    width: 60%;
+    bottom: 80%;
+    left: 20%;
+}
+
+#buzzer #status *{
+    position: relative;
+    max-width: 50%;
+    bottom: 0;
+}
+
+#buzzer #place{
+    float: left;
+}
+
+#buzzer #score{
+    float: right;
+    text-align: right;
+}
+
+#buzzer #bell {
     position: absolute;
     top: 20%;
     left: 20%;

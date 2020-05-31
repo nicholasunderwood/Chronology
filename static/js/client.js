@@ -1,7 +1,7 @@
 const socket = io();
 var name = '';
 var isHost = false;
-var client, players;
+var client, players, showAnswer;
 
 function show(id){
     $('body>div').each((_, el) => {
@@ -10,11 +10,13 @@ function show(id){
 }
 
 function startGame(categories, _players) {
+    
     if(!isHost){
         console.log('load buzzer')
         loadBuzzer();
         return;
     }
+
     players = _players;
     socket.on('question', showQuestion);
     socket.on('board', showBoard);
@@ -25,7 +27,7 @@ function startGame(categories, _players) {
 }
 
 function loadBoard(categories) {
-    let tbody = $('#board tbody');
+
     categories.forEach( category => {
         $('#board thead').append($(`<th>${category}</th>`));
     });
@@ -38,13 +40,13 @@ function loadBoard(categories) {
         $('#board tbody').append(tr);
     }
 
-    $('td:enabled').click(event => {
-        socket.emit('square chosen', event.target.cat, event.target.index);
+    $('td').click(event => {
+        socket.emit('square chosen', $(event.target).attr('cat'), $(event.target).attr('index'));
         $('td').unbind();
     });
 }
 
-function showBoard() {
+function showBoard(board) {
     
     $('#board td').click(event => {
         socket.emit('square chosen', $(event.target).attr('cat'), +$(event.target).attr('index'));
@@ -58,6 +60,11 @@ function loadQuestion() {
 
     $('#incorrect').click(() => { socket.emit('incorrect'); });
 
+    $('#correct').click(() => {
+        socket.emit('correct');
+        showAnswer();
+    });
+
     socket.on('buzz', name => {
         alert(name + " has buzzed in");
         $('.validation').each( (_, el) => $(el).prop('disabled', false));
@@ -65,19 +72,23 @@ function loadQuestion() {
 }
 
 function showQuestion(question){
+    console.log(question)
 
-    function showAnswer() {
+    showAnswer = () => {
         $('#a').text(question.answer);
         $('.validation').each((_,el) => $(el).prop('disabled', true));
         $('#back').val('Back to Board');
         $('#back').click(() => socket.emit('back') );
     }
 
-    $('.validation').each( (_, el) => $(el).prop('disabled', false));
+    $('.validation').each( (_, el) => $(el).prop('disabled', true));
+    
+    $('#back').click(() => {
+        console.log(showAnswer);
+        showAnswer();
+    }).val('Show Answer');
+    
     $('#q').text(question.question);
-    $('#correct').click(() => {})
-
-    console.log('show question', question)
     show('question');
 }
 
@@ -91,6 +102,11 @@ function loadBuzzer() {
 
     socket.on('buzzerState', setButton);
 
+    socket.on('score', (score, rank) => {
+        $('#score').text(score);
+        $('#rank').text(rank);
+    })
+
     $('#buzzer>input').click(() => {
         console.log('buzz');
         socket.emit('buzz', new Date());
@@ -99,6 +115,7 @@ function loadBuzzer() {
 }
 
 $( document ).ready( () => {
+
     $('#start-div').hide();
     $('#list-div').hide();
     show('login');
@@ -130,12 +147,13 @@ $( document ).ready( () => {
     });
 
     socket.on('players', (players, hasHost) => {
-        $('#isHost').prop('disabled', !hasHost && isHost);
+        console.log(players, hasHost, isHost);
+        $('#isHost').prop('disabled', hasHost && !isHost);
         $('#players-list').empty();
 
         console.log('players', players);
         players.forEach((player) => {
-            $('#players-list').append($(`<li class='list-group-item'>${player}</li>`));
+            $('#players-list').append($(`<li class='list-group-item'>${player.name}</li>`));
         });
     });
 });

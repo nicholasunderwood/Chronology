@@ -10,7 +10,7 @@ var fs = require("fs");
 app.set('port', 5000);
 app.use('/static', express.static(__dirname + '/static'));// Routing
 app.get('/', function (request, response) {
-	response.sendFile(path.join(__dirname, 'gane.html'));
+	response.sendFile(path.join(__dirname, 'game.html'));
 });
 
 // Starts the server.
@@ -19,95 +19,130 @@ server.listen(5000, function () {
 });
 
 class Player {
-	constructor(id, name) {
+	constructor(id, name){
 		this.id = id;
 		this.name = name;
-		this.isSelecting = false;
 		this.score = 0;
 	}
 }
 
-function startGame() {
-	console.log("start game");
-	sockets.forEach((socket, player) => {
-		console.log(player);
-		socket.emit('start', player, players);
-	})
-}
-
-function updateClient() {
-	io.sockets.emit('updateClient', players);
-	if (players.every(val => val.ready)) {
-		startGame();
+function addRing(newRing) {
+	if(ring == null){
+		io.sockets.emit('buzzState', false);
+		ring = newRing;
+		setTimeout(() => {
+			currentPlayer = ring.player;
+			host.emit('buzz', ring.player.name);
+			ring = null;
+		}, 300);
+	} else {
+		if(newRing.time < ring.time){
+			ring = newRing;
+		}
 	}
 }
 
-function sendServerMessage(message) {
-	console.log(message)
-	io.sockets.emit("new chat", message, true)
+function sendScores() {
+	const temp = [...players];
+	const ranked = [];
+	var rank = 1;
+	while(temp.length > 0) {
+		let index = 0;
+		let max = players[0];
+		players.forEach((player, i) => {
+			if(player.score > max.score){
+				max = player;
+				index = i;
+			}
+		});
+		temp.splice(index,1);
+		if(ranked.length > 0 && ranked[ranked.length - 1].score > max.score) rank++;
+		sockets.get(max.id).emit('score', max.score, rank);
+		ranked.push(max);
+		host.emit('scores', ranked);		
+	}
 }
 
-const players = [];
-const chat = [];
+const finished = new Map();
 const sockets = new Map();
-var board;
+const players = [];
 const catagories = [];
-var hasStarted = false;
+var board;
+var host = null
+var ring = null;
+var question = null;
+var currentPlayer = null;
 
 fs.readFile("questions.json", 'utf8', (err, data) => {
 	if (err) throw err;
-	board = JSON.parse(data);
+	board = JSON.parse(data)
 	for(key in board){
-		catagories.add(key);
+		catagories.push(key);
 	}
 });
 
-
 // Add the WebSocket handlers
 io.on('connection', socket => {
+	var isHost = false;
+	var player = null;
+	sockets.set(socket.id, socket);
 
-	socket.on('new player', () => {
-		let player = new Player(
-			socket.id,
-			`Player ${players.length + 1}`
-		);
-		sendServerMessage(`${player.name} joined`)
-		players.push(player);
-		sockets.set(player, socket);
-
-		if (players.length == 1) {
-			socket.emit('host')
+	socket.on('ready', name => {
+		console.log(name, name == 'host');
+		if(player){
+			isHost = false;
+			players.splice(players.indexOf(player));
+			player = null;
 		}
-		updateClient();
+		if(name != 'host'){
+			player = new Player(socket.id, name);
+			players.push(player);
 
-		socket.on('ready', ready => {
-			player.ready = ready;
-			updateClient()
-		});
+			socket.on('buzz', date => {
+				addRing({'player': player, 'time': date});
+				socket.emit('buzzState', false);
+			});
+		} else {
+			isHost = true;
+			host = socket;
 
-		socket.on('name', name => {
-			player.name = name;
-			updateClient()
-		});
+			socket.on('start', () => {
+				io.sockets.emit('start', Object.keys(board));
+				console.log('start');
+			});
 
-		socket.on('catagory choice', (catagory, card) => {
-			if( !player.isSelecting ) return;
-			player.isSelecting = false;
-		});
+			socket.on('square chosen', (catagory, index) => {
+				question = board[catagory][index]
+				io.sockets.emit('buzzState', true);
+				socket.emit('question', question);
+			});
 
-		socket.on('chat recived', message => {
-			message = player.name + ": " + message
-			chat.push(message);
-			io.sockets.emit('new chat', message, false);
-		});
+			socket.on('correct', () => {
+				currentPlayer.score += question.value;
+				sendScores()
+			});
+
+			socket.on('incorrect', () => {
+				io.sockets.emit('buzzState', true);
+				currentPlayer.score -= question.value;
+				sendScores()
+			});
+
+			socket.on('back', () => {
+				socket.emit('board', Object.keys(board), players);
+			});
+		}
 
 		socket.on('leave', () => {
-			let index = players.indexOf(player)
-			if (index < 0) return;
-			players.splice(index);
-			sockets.delete(player);
-			console.log(`${player.name} left`);
-			updateClient();
+			if(!isHost) {
+				players.splice(players.indexOf(player));
+				console.log(`${player.name} left`);
+				io.socket.emit('players', players, host != null);
+			} else {
+				console.log('fucked');
+			}
 		});
+
+		io.sockets.emit('players', players, host != null);
 	});
 });
