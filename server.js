@@ -46,21 +46,23 @@ function sendScores() {
 	const temp = [...players];
 	const ranked = [];
 	var rank = 1;
+	var max;
 	while(temp.length > 0) {
 		let index = 0;
-		let max = players[0];
-		players.forEach((player, i) => {
-			if(player.score > max.score){
-				max = player;
+		max = temp[0];
+		for(let i = 1; i < temp.length; i++){
+			if(temp[i].score > max.score){
+				max = temp[i];
 				index = i;
 			}
-		});
+		}
 		temp.splice(index,1);
 		if(ranked.length > 0 && ranked[ranked.length - 1].score > max.score) rank++;
 		sockets.get(max.id).emit('score', max.score, rank);
 		ranked.push(max);
-		host.emit('scores', ranked);		
 	}
+	console.log('new rankings', ranked)
+	host.emit('scores', ranked);		
 }
 
 const finished = new Map();
@@ -108,6 +110,7 @@ io.on('connection', socket => {
 
 			socket.on('start', () => {
 				io.sockets.emit('start', Object.keys(board));
+				sendScores();
 				console.log('start');
 			});
 
@@ -115,6 +118,16 @@ io.on('connection', socket => {
 				question = board[catagory][index]
 				io.sockets.emit('buzzState', true);
 				socket.emit('question', question);
+			});
+
+			socket.on('score change', (id, delta) => {
+				players.forEach(player => {
+					if(player.id == id){
+						player.score += +delta;
+						sendScores();
+						return;
+					}
+				});
 			});
 
 			socket.on('correct', () => {

@@ -20,6 +20,7 @@ function startGame(categories, _players) {
     players = _players;
     socket.on('question', showQuestion);
     socket.on('board', showBoard);
+    socket.on('scores', loadRankings);
 
     loadBoard(categories);
     loadQuestion();
@@ -54,6 +55,48 @@ function showBoard(board) {
     });
     
     show('board')
+}
+
+function changeScore(event, delta) {
+    console.log('change score', $(event.target), $(event.target).attr('player'))
+    socket.emit('score change', $($(event.target).parent()).attr('player'), delta);
+}
+
+function loadRankings(scores){
+    console.log('load rankings', scores)
+    
+    let list = $('#rankings ul');
+    let add = $('<input type="button" value="+" class="money-control add btn btn-success">');
+    let sub = $('<input type="button" value="-" class="money-control add btn btn-danger">');
+
+	scores.forEach(player => {
+        console.log(player)
+        list.append(
+            $(`<li class="list-group-item" player=${player.id}></li>`)
+                .append(add.clone().click(e => changeScore(e, 100)))
+                .append(`<div><h5>${player.name}</h5><h5>$${player.score}</h5><div>`)
+                .append(sub.clone().click(e => changeScore(e, -100)))
+        )
+    });
+
+    socket.removeListener('scores', loadRankings);
+    socket.on('scores', updateRankings);
+}
+
+function updateRankings(scores) {
+    console.log('update rankings', scores)
+    $('#rankings li div h5').each((i,el) => {
+        let player = scores[Math.floor(i/2)];
+        if(i % 2 == 0){
+            console.log(player.name)
+            $(`#rankings li:nth-child(${Math.floor(i/2)+1})`).attr('player', player.id);
+            $(el).text(player.name);
+        } else {
+            console.log(player.score);
+            $(el).text('$' + player.score);
+        }
+    })
+
 }
 
 function loadQuestion() {
@@ -92,6 +135,9 @@ function showQuestion(question){
     show('question');
 }
 
+function showAnswer(answer) {
+
+}
 
 function loadBuzzer() {
     let button = $('#buzzer>input');
@@ -103,15 +149,18 @@ function loadBuzzer() {
     socket.on('buzzerState', setButton);
 
     socket.on('score', (score, rank) => {
-        $('#score').text(score);
-        $('#rank').text(rank);
+        console.log("score", score, rank);
+        let digit = rank % 10;
+        $('#score').text('$' + score);
+        $('#rank').text('' + rank + digit == 1 ? "st" : digit == 2 ? 'nd' : digit == 3 ? 'rd' : 'th');
     })
 
     $('#buzzer>input').click(() => {
-        console.log('buzz');
         socket.emit('buzz', new Date());
+        button.prop('disabled', true);
     });
-    show('buzzer')
+
+    show('buzzer');
 }
 
 $( document ).ready( () => {

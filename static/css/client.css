@@ -1,7 +1,7 @@
 html, body {
     height: 100%;
     width: 100%;
-    /* overflow: hidden; */
+    overflow: hidden;
 } 
 body>div {
     width: 100%;
@@ -16,7 +16,37 @@ body>div {
     padding: 10px;
     width: 30%;
 }
-#board>div{
+
+#board #rankings {
+    width: 80%;
+    margin: 10px auto;
+}
+
+#board ul{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+#board li {
+    flex-grow: 100;
+    text-align: center;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#board li>div{
+    display: inline-block;
+    flex-grow: 100;
+    padding: 8px;
+    white-space: nowrap
+}
+#board li input {
+    height: 100%;
+}
+
+#board #wrapper{
     margin: 10px auto;
     width: 80%;
     height: 80%;
@@ -104,7 +134,7 @@ body>div {
     bottom: 0;
 }
 
-#buzzer #place{
+#buzzer #rank{
     float: left;
 }
 
