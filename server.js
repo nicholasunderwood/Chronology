@@ -61,11 +61,9 @@ function sendScores() {
 		sockets.get(max.id).emit('score', max.score, rank);
 		ranked.push(max);
 	}
-	console.log('new rankings', ranked)
 	host.emit('scores', ranked);		
 }
 
-const finished = new Map();
 const sockets = new Map();
 const players = [];
 const catagories = [];
@@ -74,6 +72,7 @@ var host = null
 var ring = null;
 var question = null;
 var currentPlayer = null;
+var hasStarted = false;
 
 fs.readFile("questions.json", 'utf8', (err, data) => {
 	if (err) throw err;
@@ -95,6 +94,10 @@ io.on('connection', socket => {
 			isHost = false;
 			players.splice(players.indexOf(player));
 			player = null;
+			if(hasStarted) {
+				socket.emit('start');
+				socket.emit('buzzState',false)
+			}
 		}
 		if(name != 'host'){
 			player = new Player(socket.id, name);
@@ -109,6 +112,7 @@ io.on('connection', socket => {
 			host = socket;
 
 			socket.on('start', () => {
+				hasStarted = true;
 				io.sockets.emit('start', Object.keys(board));
 				sendScores();
 				console.log('start');
@@ -132,7 +136,7 @@ io.on('connection', socket => {
 
 			socket.on('correct', () => {
 				currentPlayer.score += question.value;
-				sendScores()
+				sendScores();
 			});
 
 			socket.on('incorrect', () => {
@@ -152,7 +156,8 @@ io.on('connection', socket => {
 				console.log(`${player.name} left`);
 				io.socket.emit('players', players, host != null);
 			} else {
-				console.log('fucked');
+				host = null;
+
 			}
 		});
 

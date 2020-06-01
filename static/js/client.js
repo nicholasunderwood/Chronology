@@ -1,7 +1,6 @@
 const socket = io();
 var name = '';
 var isHost = false;
-var client, players, showAnswer;
 
 function show(id){
     $('body>div').each((_, el) => {
@@ -9,7 +8,7 @@ function show(id){
     });
 }
 
-function startGame(categories, _players) {
+function startGame(categories) {
     
     if(!isHost){
         console.log('load buzzer')
@@ -17,7 +16,6 @@ function startGame(categories, _players) {
         return;
     }
 
-    players = _players;
     socket.on('question', showQuestion);
     socket.on('board', showBoard);
     socket.on('scores', loadRankings);
@@ -34,20 +32,24 @@ function loadBoard(categories) {
     });
 
     for(let row = 0; row < 5; row++ ){
-        let tr = $('<tr></tr>');
+        let tr = $('<tr></tr>')
         for(let i = 0; i < 5; i++){
-            tr.append(`<td cat=${categories[row]} index=${i} enabled>${(row+1) * 100}</td>`);
+            tr.append(`<td cat=${categories[row]} index=${i} answered='false'>${(row+1) * 100}</td>`);
         }
         $('#board tbody').append(tr);
     }
 
-    $('td').click(event => {
+    $('td[answered="false"]').click(event => {
+        let td = $(event.target);
+        td.attr('answered', true);
         socket.emit('square chosen', $(event.target).attr('cat'), $(event.target).attr('index'));
         $('td').unbind();
     });
 }
 
 function showBoard(board) {
+    $('#q').text('');
+    $('#a').text('');
     
     $('#board td').click(event => {
         socket.emit('square chosen', $(event.target).attr('cat'), +$(event.target).attr('index'));
@@ -93,7 +95,7 @@ function updateRankings(scores) {
             $(el).text(player.name);
         } else {
             console.log(player.score);
-            $(el).text('$' + player.score);
+            $(el).text((player.score < 0 ? '-$' : '$') + Math.abs(player.score));
         }
     })
 
@@ -117,13 +119,6 @@ function loadQuestion() {
 function showQuestion(question){
     console.log(question)
 
-    showAnswer = () => {
-        $('#a').text(question.answer);
-        $('.validation').each((_,el) => $(el).prop('disabled', true));
-        $('#back').val('Back to Board');
-        $('#back').click(() => socket.emit('back') );
-    }
-
     $('.validation').each( (_, el) => $(el).prop('disabled', true));
     
     $('#back').click(() => {
@@ -136,28 +131,41 @@ function showQuestion(question){
 }
 
 function showAnswer(answer) {
-
+    $('#a').text(answer);
+    $('.validation').each((_,el) => $(el).prop('disabled', true));
+    $('#back').val('Back to Board');
+    $('#back').click(() => socket.emit('back') );
 }
 
 function loadBuzzer() {
+
+    function getEnding(score) {
+        if(score > 3 && score < 21) return 'th';
+        if(score % 10 == 1) return 'st';
+        if(score % 10 == 2) return 'nd';
+        if(score % 10 == 3) return 'rd';
+        return 'th'
+    }
+
     let button = $('#buzzer>input');
     
     function setButton(enabled){
         button.prop('disabled',!enabled);
     }
 
-    socket.on('buzzerState', setButton);
+    socket.on('buzzState', setButton);
 
     socket.on('score', (score, rank) => {
-        console.log("score", score, rank);
-        let digit = rank % 10;
-        $('#score').text('$' + score);
-        $('#rank').text('' + rank + digit == 1 ? "st" : digit == 2 ? 'nd' : digit == 3 ? 'rd' : 'th');
+        console.log("score", rank);
+        $('#score').text((score < 0 ? '-$' : '$') + Math.abs(score));
+        $('#rank').text(rank.toString() + getEnding(score));
+
+        // $('#rank').text('' + rank + digit == 1 ? "st" : digit == 2 ? 'nd' : digit == 3 ? 'rd' : 'th');
     })
 
     $('#buzzer>input').click(() => {
         socket.emit('buzz', new Date());
-        button.prop('disabled', true);
+        setButton(false);
     });
 
     show('buzzer');

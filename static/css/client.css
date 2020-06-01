@@ -65,6 +65,10 @@ body>div {
     width: 20%
 }
 
+#board td[answered="true"] {
+    background-color: grey;
+}
+
 #question #info {
     width: 60%;
     margin: 10% auto 0 auto;
