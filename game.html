@@ -2,19 +2,19 @@
 <html>
 
 <head>
-    <title>Ringer</title>
+    <title>Jeopardy</title>
     <link rel="stylesheet" type="text/css" href="./static/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="/static/css/client.css">
 
 </head>
 
 <body>
-    <div id="login">
+    <div id="login" class="screen">
         <div class="border border-dark rounded">
             <form>
                 <div class="form-group" id='name-group'>
                     <label for='name'>Name</label>
-                    <input type="text" id="name" class="form-control" placeholder="Name">
+                    <input type="text" id="name" class="form-control" placeholder="Name" maxlength="20">
                 </div>
                 <div class="form-group row">
                     <div class="col">
@@ -27,22 +27,21 @@
                 <div class=form-group>
                     <input type="submit" value="Submit" class="form-control btn btn-primary">
                 </div>
-                <div class=form-group id='start-div'>
-                    <input type="button" id='start' value="Start Game" class="form-control btn btn-success">
+                <div class=form-group id='start-div' style="display: none;">
+                    <input type="button" id='start' value="Start Game" class="form-control btn btn-success" disabled>
                 </div>
-                <div class="form-group" id='lst-div'>
+                <div class="form-group" id='lst-div' style="display: none;">
                     <ul class="list-group" id='players-list'>
-
                     </ul>
                 </div>
             </form>
         </div>
     </div>
-    <div id='board'>
-        <div id='rankings'>
-            <ul class="list-group list-group-horizontal">
-            </ul>
-        </div>
+    <div id='rankings' style="display: none;">
+        <ul class="list-group list-group-horizontal">
+        </ul>
+    </div>
+    <div id='board' class="screen">
         <div id='wrapper'>
             <table>
                 <thead></thead>
@@ -50,22 +49,22 @@
             </table>
         </div>
     </div>
-    <div id='question'>
+    <div id='question' class="screen">
         <div id='info'>
             <h1 id='q'></h1>
             <h1 id='a'></h1>
         </div>
         <div id='btns'>
             <div id='validation' class="rounded-top">
-                <input type="button" id='correct' class="form-control btn btn-danger validation" value="Correct" disabled>
-                <input type="button" id='incorrect' class="form-control btn btn-success validation" value="Incorrect" disabled>
+                <input type="button" id='correct' class="form-control btn btn-success validation" value="Correct" disabled>
+                <input type="button" id='incorrect' class="form-control btn btn-danger validation" value="Incorrect" disabled>
             </div>
             <div class="rounded-bottom">
                 <input type="button" id='back' class="form-control btn btn-dark" value="Return to board">
             </div>
         </div>
     </div>
-    <div id='buzzer'>
+    <div id='buzzer' class="screen">
         <div id='status'>
             <h2 id='rank'></h2>
             <h2 id='score'></h2>

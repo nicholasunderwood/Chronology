@@ -3,12 +3,16 @@ var name = '';
 var isHost = false;
 
 function show(id){
-    $('body>div').each((_, el) => {
-        el.id == id ? $(el).show() : $(el).hide();
+    console.log('show', id);
+    $('.screen').each((_, el) => {
+        console.log(el, el.id, el.id == id);
+        if(el.id == id) $(el).show(); else $(el).hide();
     });
 }
 
 function startGame(categories) {
+    console.log('start');
+    socket.removeListener('start', startGame)
     
     if(!isHost){
         console.log('load buzzer')
@@ -20,48 +24,10 @@ function startGame(categories) {
     socket.on('board', showBoard);
     socket.on('scores', loadRankings);
 
+    $('#rankings').show();
     loadBoard(categories);
     loadQuestion();
     showBoard(board);
-}
-
-function loadBoard(categories) {
-
-    categories.forEach( category => {
-        $('#board thead').append($(`<th>${category}</th>`));
-    });
-
-    for(let row = 0; row < 5; row++ ){
-        let tr = $('<tr></tr>')
-        for(let i = 0; i < 5; i++){
-            tr.append(`<td cat=${categories[row]} index=${i} answered='false'>${(row+1) * 100}</td>`);
-        }
-        $('#board tbody').append(tr);
-    }
-
-    $('td[answered="false"]').click(event => {
-        let td = $(event.target);
-        td.attr('answered', true);
-        socket.emit('square chosen', $(event.target).attr('cat'), $(event.target).attr('index'));
-        $('td').unbind();
-    });
-}
-
-function showBoard(board) {
-    $('#q').text('');
-    $('#a').text('');
-    
-    $('#board td').click(event => {
-        socket.emit('square chosen', $(event.target).attr('cat'), +$(event.target).attr('index'));
-        $('td').unbind();
-    });
-    
-    show('board')
-}
-
-function changeScore(event, delta) {
-    console.log('change score', $(event.target), $(event.target).attr('player'))
-    socket.emit('score change', $($(event.target).parent()).attr('player'), delta);
 }
 
 function loadRankings(scores){
@@ -71,7 +37,7 @@ function loadRankings(scores){
     let add = $('<input type="button" value="+" class="money-control add btn btn-success">');
     let sub = $('<input type="button" value="-" class="money-control add btn btn-danger">');
 
-	scores.forEach(player => {
+    scores.forEach(player => {
         console.log(player)
         list.append(
             $(`<li class="list-group-item" player=${player.id}></li>`)
@@ -101,6 +67,48 @@ function updateRankings(scores) {
 
 }
 
+function loadBoard(categories) {
+
+    categories.forEach( category => {
+        $('#board thead').append($(`<th>${category}</th>`));
+    });
+
+    for(let row = 0; row < 5; row++ ){
+        let tr = $('<tr></tr>')
+        for(let i = 0; i < 5; i++){
+            tr.append(`<td cat=${categories[row]} index=${i} answered='false'>${(row+1) * 100}</td>`);
+        }
+        $('#board tbody').append(tr);
+    }
+
+    $('td[answered="false"]').click(event => {
+        let td = $(event.target);
+        td.attr('answered', true);
+        socket.emit('square chosen', $(event.target).attr('cat'), $(event.target).attr('index'));
+        $('td').unbind();
+    });
+}
+
+function showBoard() {
+    $('#a','#q').text('');
+    console.log('show board')
+    $('#q').text('');
+    $('#a').text('');
+    
+    $('#board td').click(event => {
+        socket.emit('square chosen', $(event.target).attr('cat'), +$(event.target).attr('index'));
+        $('td').unbind();
+    });
+    
+    show('board')
+}
+
+function changeScore(event, delta) {
+    console.log('change score', $(event.target), $(event.target).attr('player'))
+    socket.emit('score change', $($(event.target).parent()).attr('player'), delta);
+}
+
+
 function loadQuestion() {
 
     $('#incorrect').click(() => { socket.emit('incorrect'); });
@@ -121,7 +129,7 @@ function showQuestion(question){
 
     $('.validation').each( (_, el) => $(el).prop('disabled', true));
     
-    $('#back').click(() => {
+    $('#back').unbind().click(() => {
         console.log(showAnswer);
         showAnswer();
     }).val('Show Answer');
@@ -134,12 +142,13 @@ function showAnswer(answer) {
     $('#a').text(answer);
     $('.validation').each((_,el) => $(el).prop('disabled', true));
     $('#back').val('Back to Board');
-    $('#back').click(() => socket.emit('back') );
+    $('#back').unbind().click(() => socket.emit('back') );
 }
 
 function loadBuzzer() {
 
     function getEnding(score) {
+        console.log(score, score%10)
         if(score > 3 && score < 21) return 'th';
         if(score % 10 == 1) return 'st';
         if(score % 10 == 2) return 'nd';
@@ -158,7 +167,7 @@ function loadBuzzer() {
     socket.on('score', (score, rank) => {
         console.log("score", rank);
         $('#score').text((score < 0 ? '-$' : '$') + Math.abs(score));
-        $('#rank').text(rank.toString() + getEnding(score));
+        $('#rank').text(rank.toString() + getEnding(rank));
 
         // $('#rank').text('' + rank + digit == 1 ? "st" : digit == 2 ? 'nd' : digit == 3 ? 'rd' : 'th');
     })
@@ -172,9 +181,6 @@ function loadBuzzer() {
 }
 
 $( document ).ready( () => {
-
-    $('#start-div').hide();
-    $('#list-div').hide();
     show('login');
     $('.clientType').click(event => {
         let btn = $(event.target);
@@ -188,8 +194,9 @@ $( document ).ready( () => {
     });
 
     $('#login form').submit((e) => {
+        $('#start-div').hide();
         e.preventDefault();
-        isHost = $('#isHost').hasClass("btn-dark");
+        isHost = $('#isHost').hasClass('btn-dark');
         name = isHost ? 'host' : $('#name').val();
         socket.emit('ready', name);
         console.log('ready', isHost);
@@ -204,11 +211,10 @@ $( document ).ready( () => {
     });
 
     socket.on('players', (players, hasHost) => {
-        console.log(players, hasHost, isHost);
+        $('#lst-div').show();
         $('#isHost').prop('disabled', hasHost && !isHost);
+        $('#start').prop('disabled', players.length == 0);
         $('#players-list').empty();
-
-        console.log('players', players);
         players.forEach((player) => {
             $('#players-list').append($(`<li class='list-group-item'>${player.name}</li>`));
         });
