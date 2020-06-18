@@ -2,6 +2,7 @@ const socket = io();
 var name = '';
 var isHost = false;
 
+
 function show(id){
     $('.screen').each((_, el) => {
         if(el.id == id) $(el).show(); else $(el).hide();
@@ -113,10 +114,20 @@ function showQuestion(question){
     $('.validation').each( (_, el) => $(el).prop('disabled', true));
     
     $('#back').unbind().click(() => {
-        showAnswer();
+        showAnswer(question.answer);
     }).val('Show Answer');
     
-    $('#q').text(question.question);
+    
+    // $('#q').text(question.question);
+    let words = question.question.split('');
+    let span = $('#q');
+    let interval = setInterval(() => {
+        span.text(span.text() + words.shift());
+        if(words.length == 0){
+            clearInterval(interval);
+        }
+    }, 60)
+
     show('question');
 }
 
