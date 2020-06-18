@@ -13,7 +13,6 @@ function loadClient(){
     $('#bell').click(() => {
         socket.emit('ring', {"name": name, "time": new Date()});
     });
-
 }
 
 function loadHost(){
@@ -53,21 +52,12 @@ $( document ).ready( () => {
         e.preventDefault();
         if($('#isHost').hasClass("btn-dark")){
             loadHost();
+            console.log('host')
         } else {
             name = $("#name").val();
             loadClient();
+            console.log('client')
         }
     })
 
-});
-
-socket.on('player', () => {
-    console.log('player');
-    show('login');
-    $('#login form').submit((event) => {
-        event.preventDefault();
-        if(!name) return; 
-        show('ringer');
-
-    });
 });

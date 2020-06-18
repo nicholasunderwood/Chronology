@@ -46,9 +46,8 @@ io.on('connection', socket => {
 
 	socket.on('player', () => {
 		socket.on('ring', newRing => {
-			addRing(newRing)
+			addRing(newRing);
 			hosts.forEach(host => host.emit('ring', rings));
 		});
 	});
-
 });
