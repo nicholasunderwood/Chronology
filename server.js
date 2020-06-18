@@ -119,6 +119,7 @@ io.on('connection', socket => {
 			});
 
 			socket.on('square chosen', (catagory, index) => {
+				console.log(catagory, index)
 				question = board[catagory][index]
 				io.sockets.emit('buzzState', true);
 				socket.emit('question', question);

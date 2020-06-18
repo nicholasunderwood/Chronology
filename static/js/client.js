@@ -3,19 +3,15 @@ var name = '';
 var isHost = false;
 
 function show(id){
-    console.log('show', id);
     $('.screen').each((_, el) => {
-        console.log(el, el.id, el.id == id);
         if(el.id == id) $(el).show(); else $(el).hide();
     });
 }
 
 function startGame(categories) {
-    console.log('start');
     socket.removeListener('start', startGame)
     
     if(!isHost){
-        console.log('load buzzer')
         loadBuzzer();
         return;
     }
@@ -31,14 +27,12 @@ function startGame(categories) {
 }
 
 function loadRankings(scores){
-    console.log('load rankings', scores)
     
     let list = $('#rankings ul');
     let add = $('<input type="button" value="+" class="money-control add btn btn-success">');
     let sub = $('<input type="button" value="-" class="money-control add btn btn-danger">');
 
     scores.forEach(player => {
-        console.log(player)
         list.append(
             $(`<li class="list-group-item" player=${player.id}></li>`)
                 .append(add.clone().click(e => changeScore(e, 100)))
@@ -52,15 +46,12 @@ function loadRankings(scores){
 }
 
 function updateRankings(scores) {
-    console.log('update rankings', scores)
     $('#rankings li div h5').each((i,el) => {
         let player = scores[Math.floor(i/2)];
         if(i % 2 == 0){
-            console.log(player.name)
             $(`#rankings li:nth-child(${Math.floor(i/2)+1})`).attr('player', player.id);
             $(el).text(player.name);
         } else {
-            console.log(player.score);
             $(el).text((player.score < 0 ? '-$' : '$') + Math.abs(player.score));
         }
     })
@@ -75,36 +66,29 @@ function loadBoard(categories) {
 
     for(let row = 0; row < 5; row++ ){
         let tr = $('<tr></tr>')
-        for(let i = 0; i < 5; i++){
-            tr.append(`<td cat=${categories[row]} index=${i} answered='false'>${(row+1) * 100}</td>`);
+        for(let col = 0; col < 5; col++){
+            tr.append(`<td cat='${categories[col]}' index='${row}' answered='false'>${(row+1) * 100}</td>`);
         }
         $('#board tbody').append(tr);
     }
 
     $('td[answered="false"]').click(event => {
         let td = $(event.target);
+        console.log(td, td.attr('cat'));
         td.attr('answered', true);
-        socket.emit('square chosen', $(event.target).attr('cat'), $(event.target).attr('index'));
-        $('td').unbind();
+        socket.emit('square chosen', td.attr('cat'), td.attr('index'));
     });
 }
 
 function showBoard() {
     $('#a','#q').text('');
-    console.log('show board')
+    console.log('show board');
     $('#q').text('');
     $('#a').text('');
-    
-    $('#board td').click(event => {
-        socket.emit('square chosen', $(event.target).attr('cat'), +$(event.target).attr('index'));
-        $('td').unbind();
-    });
-    
-    show('board')
+    show('board');
 }
 
 function changeScore(event, delta) {
-    console.log('change score', $(event.target), $(event.target).attr('player'))
     socket.emit('score change', $($(event.target).parent()).attr('player'), delta);
 }
 
@@ -125,12 +109,10 @@ function loadQuestion() {
 }
 
 function showQuestion(question){
-    console.log(question)
 
     $('.validation').each( (_, el) => $(el).prop('disabled', true));
     
     $('#back').unbind().click(() => {
-        console.log(showAnswer);
         showAnswer();
     }).val('Show Answer');
     
@@ -148,7 +130,6 @@ function showAnswer(answer) {
 function loadBuzzer() {
 
     function getEnding(score) {
-        console.log(score, score%10)
         if(score > 3 && score < 21) return 'th';
         if(score % 10 == 1) return 'st';
         if(score % 10 == 2) return 'nd';
@@ -165,7 +146,6 @@ function loadBuzzer() {
     socket.on('buzzState', setButton);
 
     socket.on('score', (score, rank) => {
-        console.log("score", rank);
         $('#score').text((score < 0 ? '-$' : '$') + Math.abs(score));
         $('#rank').text(rank.toString() + getEnding(rank));
 
@@ -198,9 +178,12 @@ $( document ).ready( () => {
         e.preventDefault();
         isHost = $('#isHost').hasClass('btn-dark');
         name = isHost ? 'host' : $('#name').val();
+        if(!name) return;
         socket.emit('ready', name);
-        console.log('ready', isHost);
         socket.on('start', startGame);
+
+        $('#submit').prop('disabled', true);
+        $('#name').change(() => $('#submit').prop('disabled', false))
         
         if(isHost) {
             $('#start').click(() => {
