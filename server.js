@@ -74,7 +74,7 @@ var question = null;
 var currentPlayer = null;
 var hasStarted = false;
 
-fs.readFile("questions.json", 'utf8', (err, data) => {
+fs.readFile("question2.json", 'utf8', (err, data) => {
 	if (err) throw err;
 	board = JSON.parse(data)
 	for(key in board){
@@ -85,6 +85,7 @@ fs.readFile("questions.json", 'utf8', (err, data) => {
 // Add the WebSocket handlers
 io.on('connection', socket => {
 	var isHost = false;
+	var hasReadied = false;
 	var player = null;
 	sockets.set(socket.id, socket);
 
@@ -92,15 +93,20 @@ io.on('connection', socket => {
 
 	socket.on('ready', name => {
 		console.log(name, name == 'host');
-		if(player){
+		if(hasReadied){
 			isHost = false;
 			players.splice(players.indexOf(player));
 			player = null;
-			if(hasStarted) {
-				socket.emit('start');
-				socket.emit('buzzState',false)
-			}
 		}
+
+		hasReadied = true;
+
+		if(hasStarted) {
+			socket.emit('start');
+			sendScores();
+			socket.emit('buzzState', false)
+		}
+
 		if(name != 'host'){
 			player = new Player(socket.id, name);
 			players.push(player);
@@ -154,14 +160,15 @@ io.on('connection', socket => {
 			});
 		}
 
-		socket.on('leave', () => {
+		socket.on('disconnect', () => {
 			if(!isHost) {
+				console.log(player.name + 'left with $' + player.score);
 				players.splice(players.indexOf(player));
-				console.log(`${player.name} left`);
-				io.socket.emit('players', players, host != null);
 			} else {
 				host = null;
+				console.log('host left')
 			}
+			io.sockets.emit('players', players, host != null);
 		});
 
 		io.sockets.emit('players', players, host != null);
