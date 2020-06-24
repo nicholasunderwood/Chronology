@@ -88,6 +88,8 @@ io.on('connection', socket => {
 	var player = null;
 	sockets.set(socket.id, socket);
 
+	socket.emit()
+
 	socket.on('ready', name => {
 		console.log(name, name == 'host');
 		if(player){
@@ -115,6 +117,7 @@ io.on('connection', socket => {
 				hasStarted = true;
 				io.sockets.emit('start', Object.keys(board));
 				sendScores();
+				io.sockets.emit('buzzState', false);
 				console.log('start');
 			});
 
@@ -158,7 +161,6 @@ io.on('connection', socket => {
 				io.socket.emit('players', players, host != null);
 			} else {
 				host = null;
-
 			}
 		});
 

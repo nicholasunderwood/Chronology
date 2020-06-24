@@ -2,6 +2,8 @@ const socket = io();
 var name = '';
 var isHost = false;
 
+// localstorage.setItem('uUID', Math.random().toString(24) + new Date());
+// socket.emit('userLogin', localstorage.getItem('uUID'));
 
 function show(id){
     $('.screen').each((_, el) => {
@@ -92,7 +94,6 @@ function showBoard() {
 function changeScore(event, delta) {
     socket.emit('score change', $($(event.target).parent()).attr('player'), delta);
 }
-
 
 function loadQuestion() {
 
@@ -205,6 +206,7 @@ $( document ).ready( () => {
     });
 
     socket.on('players', (players, hasHost) => {
+        console.log("players", isHost, players)
         $('#lst-div').show();
         $('#isHost').prop('disabled', hasHost && !isHost);
         $('#start').prop('disabled', players.length == 0);
