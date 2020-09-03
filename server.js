@@ -32,7 +32,7 @@ function addRing(newRing) {
 		ring = newRing;
 		setTimeout(() => {
 			currentPlayer = ring.player;
-			host.emit('buzz', ring.player.name);
+			if(host != null) host.emit('buzz', ring.player.name);
 			ring = null;
 		}, 300);
 	} else {
@@ -61,7 +61,7 @@ function sendScores() {
 		sockets.get(max.id).emit('score', max.score, rank);
 		ranked.push(max);
 	}
-	host.emit('scores', ranked);		
+	if(host != null) host.emit('scores', ranked);
 }
 
 const sockets = new Map();
